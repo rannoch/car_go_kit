@@ -1,37 +1,42 @@
-package inmem
+package car
 
 import (
-	"github.com/rannoch/car"
 	"sync"
 )
 
-type carRepositoryInmem struct {
-	cars sync.Map
+type repositoryInmem struct {
+	cars          sync.Map
+	autoIncrement int
 }
 
-func NewCarRepositoryInmem() *carRepositoryInmem {
-	return &carRepositoryInmem{}
+func NewCarRepositoryInmem() *repositoryInmem {
+	return &repositoryInmem{}
 }
 
-func (c *carRepositoryInmem) Store(car *car.Car) error {
+func (c *repositoryInmem) Store(car *Car) error {
+	if car.Id == 0 {
+		c.autoIncrement++
+		car.Id = c.autoIncrement
+	}
+
 	c.cars.Store(car.Id, car)
 	return nil
 }
 
-func (c *carRepositoryInmem) Find(id int) (*car.Car, error) {
+func (c *repositoryInmem) Find(id int) (*Car, error) {
 	carRaw, ok := c.cars.Load(id)
 	if !ok {
-		return nil, car.ErrNotFound
+		return nil, ErrNotFound
 	}
 
-	return carRaw.(*car.Car), nil
+	return carRaw.(*Car), nil
 }
 
-func (c *carRepositoryInmem) FindAll() ([]*car.Car, error) {
-	allCars := make([]*car.Car, 0)
+func (c *repositoryInmem) FindAll() ([]*Car, error) {
+	allCars := make([]*Car, 0)
 
 	c.cars.Range(func(key, value interface{}) bool {
-		allCars = append(allCars, value.(*car.Car))
+		allCars = append(allCars, value.(*Car))
 
 		return true
 	})
@@ -39,7 +44,7 @@ func (c *carRepositoryInmem) FindAll() ([]*car.Car, error) {
 	return allCars, nil
 }
 
-func (c *carRepositoryInmem) Del(id int) error {
+func (c *repositoryInmem) Del(id int) error {
 	c.cars.Delete(id)
 	return nil
 }
