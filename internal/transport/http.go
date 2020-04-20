@@ -1,4 +1,4 @@
-package car
+package transport
 
 import (
 	"context"
@@ -8,6 +8,8 @@ import (
 	"github.com/go-kit/kit/transport"
 	httptransport "github.com/go-kit/kit/transport/http"
 	"github.com/gorilla/mux"
+	endpoint "github.com/rannoch/car/internal/endpoint"
+	service "github.com/rannoch/car/internal/service"
 	"net/http"
 	"strconv"
 )
@@ -18,9 +20,8 @@ var (
 	ErrBadRouting = errors.New("inconsistent mapping between route and handler (programmer error)")
 )
 
-func MakeHTTPHandler(s Service, logger log.Logger) http.Handler {
+func MakeHTTPHandler(endpoints endpoint.Endpoints, logger log.Logger) http.Handler {
 	router := mux.NewRouter()
-	endpoints := MakeServerEndpoints(s)
 
 	options := []httptransport.ServerOption{
 		httptransport.ServerErrorHandler(transport.NewLogErrorHandler(logger)),
@@ -50,7 +51,7 @@ func MakeHTTPHandler(s Service, logger log.Logger) http.Handler {
 		endpoints.PutCarEndpoint,
 		decodePutCarRequest,
 		encodeResponse,
-		options...
+		options...,
 	))
 
 	router.Methods("DELETE").Path("/cars/{id}").Handler(httptransport.NewServer(
@@ -64,12 +65,16 @@ func MakeHTTPHandler(s Service, logger log.Logger) http.Handler {
 }
 
 func decodePostCarRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	var req PostCarRequest
+	var req endpoint.PostCarRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req.Car)
 
 	if err != nil {
 		return nil, err
+	}
+
+	if req.Car.Id != 0 {
+		return nil, ErrBadRouting
 	}
 
 	return req, nil
@@ -89,7 +94,7 @@ func decodeGetCarRequest(_ context.Context, r *http.Request) (interface{}, error
 		return nil, ErrBadRouting
 	}
 
-	return GetCarRequest{Id: id}, nil
+	return endpoint.GetCarRequest{Id: id}, nil
 }
 
 func decodePutCarRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -106,7 +111,7 @@ func decodePutCarRequest(_ context.Context, r *http.Request) (interface{}, error
 		return nil, ErrBadRouting
 	}
 
-	var car Car
+	var car service.Car
 
 	err = json.NewDecoder(r.Body).Decode(&car)
 
@@ -114,7 +119,7 @@ func decodePutCarRequest(_ context.Context, r *http.Request) (interface{}, error
 		return nil, err
 	}
 
-	return PutCarRequest{
+	return endpoint.PutCarRequest{
 		Id:  id,
 		Car: car,
 	}, nil
@@ -134,7 +139,7 @@ func decodeDeleteCarRequest(_ context.Context, r *http.Request) (interface{}, er
 		return nil, ErrBadRouting
 	}
 
-	return DelCarRequest{Id: id}, nil
+	return endpoint.DelCarRequest{Id: id}, nil
 }
 
 type errorer interface {
@@ -158,16 +163,16 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	w.WriteHeader(codeFrom(err))
-	json.NewEncoder(w).Encode(map[string]interface{}{
+	_ = json.NewEncoder(w).Encode(map[string]interface{}{
 		"error": err.Error(),
 	})
 }
 
 func codeFrom(err error) int {
 	switch err {
-	case ErrNotFound:
+	case service.ErrNotFound:
 		return http.StatusNotFound
-	case ErrAlreadyExists, ErrInconsistentIDs:
+	case service.ErrAlreadyExists, service.ErrInconsistentIDs:
 		return http.StatusBadRequest
 	default:
 		return http.StatusInternalServerError

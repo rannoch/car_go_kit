@@ -1,6 +1,7 @@
-package car
+package service
 
 import (
+	"context"
 	"github.com/jmoiron/sqlx"
 	"github.com/jmoiron/sqlx/reflectx"
 	"strings"
@@ -16,13 +17,13 @@ func NewRepositoryMysql(db *sqlx.DB) *repositoryMysql {
 	return &repositoryMysql{db: db}
 }
 
-func (r repositoryMysql) Store(car *Car) error {
+func (r repositoryMysql) Store(ctx context.Context, car *Car) error {
 	var query string
 
 	if car.Id == 0 {
 		query = `INSERT INTO car (brand, model, created) VALUES (?, ?, now())`
 
-		result, err := r.db.Exec(query, car.Brand, car.Model)
+		result, err := r.db.ExecContext(ctx, query, car.Brand, car.Model)
 		if err != nil {
 			return err
 		}
@@ -36,7 +37,7 @@ func (r repositoryMysql) Store(car *Car) error {
 	} else {
 		query = "UPDATE car SET brand = ?, model = ? WHERE id = ?"
 
-		_, err := r.db.Exec(query, car.Brand, car.Model, car.Id)
+		_, err := r.db.ExecContext(ctx, query, car.Brand, car.Model, car.Id)
 		if err != nil {
 			return err
 		}
@@ -45,10 +46,10 @@ func (r repositoryMysql) Store(car *Car) error {
 	return nil
 }
 
-func (r repositoryMysql) Find(id int) (*Car, error) {
+func (r repositoryMysql) Find(ctx context.Context, id int) (*Car, error) {
 	var car Car
 
-	err := r.db.Get(&car, "SELECT * FROM car WHERE id = ?", id)
+	err := r.db.GetContext(ctx, &car, "SELECT * FROM car WHERE id = ?", id)
 
 	if err != nil {
 		return nil, err
@@ -57,18 +58,17 @@ func (r repositoryMysql) Find(id int) (*Car, error) {
 	return &car, nil
 }
 
-func (r repositoryMysql) FindAll() ([]*Car, error) {
+func (r repositoryMysql) FindAll(ctx context.Context) ([]*Car, error) {
 	var cars []*Car
 
-	err := r.db.Select(&cars, "SELECT * FROM car")
+	err := r.db.SelectContext(ctx, &cars, "SELECT * FROM car")
 
 	return cars, err
 }
 
-func (r repositoryMysql) Del(id int) error {
+func (r repositoryMysql) Del(ctx context.Context, id int) error {
 	query := "DELETE FROM car WHERE id = ?"
 
-	_, err := r.db.Exec(query, id)
+	_, err := r.db.ExecContext(ctx, query, id)
 	return err
 }
-

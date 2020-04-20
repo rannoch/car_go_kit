@@ -1,8 +1,9 @@
-package car
+package endpoint
 
 import (
 	"context"
 	"github.com/go-kit/kit/endpoint"
+	service "github.com/rannoch/car/internal/service"
 )
 
 type Endpoints struct {
@@ -12,7 +13,7 @@ type Endpoints struct {
 	DeleteCarEndpoint endpoint.Endpoint
 }
 
-func MakeServerEndpoints(s Service) Endpoints {
+func MakeServerEndpoints(s service.Service) Endpoints {
 	return Endpoints{
 		GetCarEndpoint:    MakeGetCarEndpoint(s),
 		PostCarEndpoint:   MakePostCarEndpoint(s),
@@ -21,7 +22,7 @@ func MakeServerEndpoints(s Service) Endpoints {
 	}
 }
 
-func MakeGetCarEndpoint(s Service) endpoint.Endpoint {
+func MakeGetCarEndpoint(s service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(GetCarRequest)
 
@@ -34,7 +35,7 @@ func MakeGetCarEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
-func MakePostCarEndpoint(s Service) endpoint.Endpoint {
+func MakePostCarEndpoint(s service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(PostCarRequest)
 
@@ -44,7 +45,7 @@ func MakePostCarEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
-func MakePutCarEndpoint(s Service) endpoint.Endpoint {
+func MakePutCarEndpoint(s service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(PutCarRequest)
 
@@ -54,7 +55,7 @@ func MakePutCarEndpoint(s Service) endpoint.Endpoint {
 	}
 }
 
-func MakeDelCarEndpoint(s Service) endpoint.Endpoint {
+func MakeDelCarEndpoint(s service.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (response interface{}, err error) {
 		req := request.(DelCarRequest)
 
@@ -69,12 +70,12 @@ type GetCarRequest struct {
 }
 
 type GetCarResponse struct {
-	Car *Car  `json:"car,omitempty"`
-	Err error `json:"err,omitempty"`
+	Car *service.Car `json:"car,omitempty"`
+	Err error        `json:"err,omitempty"`
 }
 
 type PostCarRequest struct {
-	Car Car
+	Car service.Car
 }
 
 type PostCarResponse struct {
@@ -83,7 +84,7 @@ type PostCarResponse struct {
 
 type PutCarRequest struct {
 	Id  int
-	Car Car
+	Car service.Car
 }
 
 type PutCarResponse struct {

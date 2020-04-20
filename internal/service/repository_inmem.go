@@ -1,6 +1,7 @@
-package car
+package service
 
 import (
+	"context"
 	"sync"
 )
 
@@ -13,7 +14,7 @@ func NewCarRepositoryInmem() *repositoryInmem {
 	return &repositoryInmem{}
 }
 
-func (c *repositoryInmem) Store(car *Car) error {
+func (c *repositoryInmem) Store(_ context.Context, car *Car) error {
 	if car.Id == 0 {
 		c.autoIncrement++
 		car.Id = c.autoIncrement
@@ -23,7 +24,7 @@ func (c *repositoryInmem) Store(car *Car) error {
 	return nil
 }
 
-func (c *repositoryInmem) Find(id int) (*Car, error) {
+func (c *repositoryInmem) Find(_ context.Context, id int) (*Car, error) {
 	carRaw, ok := c.cars.Load(id)
 	if !ok {
 		return nil, ErrNotFound
@@ -32,7 +33,7 @@ func (c *repositoryInmem) Find(id int) (*Car, error) {
 	return carRaw.(*Car), nil
 }
 
-func (c *repositoryInmem) FindAll() ([]*Car, error) {
+func (c *repositoryInmem) FindAll(_ context.Context) ([]*Car, error) {
 	allCars := make([]*Car, 0)
 
 	c.cars.Range(func(key, value interface{}) bool {
@@ -44,7 +45,7 @@ func (c *repositoryInmem) FindAll() ([]*Car, error) {
 	return allCars, nil
 }
 
-func (c *repositoryInmem) Del(id int) error {
+func (c *repositoryInmem) Del(_ context.Context, id int) error {
 	c.cars.Delete(id)
 	return nil
 }

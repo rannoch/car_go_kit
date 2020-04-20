@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package pb;
+
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/empty.proto";
+
+service CarService {
+  rpc GetCar (GetCarRequestPb) returns (CarPb) {}
+  rpc PostCar(CarWithoutIdPb) returns (google.protobuf.Empty) {}
+  rpc PutCar(CarPb) returns (google.protobuf.Empty) {}
+  rpc DeleteCar(DeleteCarRequestPb) returns (google.protobuf.Empty) {}
+}
+
+message CarWithoutIdPb {
+  string brand = 1;
+  string model = 2;
+  google.protobuf.Timestamp created = 3;
+}
+
+message GetCarRequestPb {
+  int64 id = 1;
+}
+message DeleteCarRequestPb {
+  int64 id = 1;
+}
+
+message CarPb {
+  int64 id = 1;
+  string brand = 2;
+  string model = 3;
+  google.protobuf.Timestamp created = 4;
+}

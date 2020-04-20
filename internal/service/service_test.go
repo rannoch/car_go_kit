@@ -1,6 +1,7 @@
-package car
+package service
 
 import (
+	"context"
 	"github.com/stretchr/testify/assert"
 	"testing"
 	"time"
@@ -13,7 +14,7 @@ func TestServiceImpl_GetCar(t *testing.T) {
 	var car *Car
 	var err error
 
-	car, err = carService.GetCar(nil, 1)
+	car, err = carService.GetCar(context.Background(), 1)
 
 	assert.Equal(t, ErrNotFound, err)
 	assert.Nil(t, car)
@@ -24,11 +25,11 @@ func TestServiceImpl_GetCar(t *testing.T) {
 		Created: time.Now(),
 	}
 
-	err = carService.PostCar(nil, car)
+	err = carService.PostCar(context.Background(), car)
 
 	assert.NoError(t, err)
 
-	c, err := carService.GetCar(nil, car.Id)
+	c, err := carService.GetCar(context.Background(), car.Id)
 
 	assert.NoError(t, err)
 	assert.Equal(t, car, c)
@@ -47,7 +48,7 @@ func TestServiceImpl_PostCar(t *testing.T) {
 		Created: time.Now(),
 	}
 
-	err = carService.PostCar(nil, car)
+	err = carService.PostCar(context.Background(), car)
 
 	assert.NoError(t, err)
 }
@@ -65,22 +66,22 @@ func TestServiceImpl_PutCar(t *testing.T) {
 		Created: time.Now(),
 	}
 
-	err = carService.PutCar(nil, car.Id, car)
+	err = carService.PutCar(context.Background(), car.Id, car)
 
 	assert.Equal(t, ErrNotFound, err)
 
-	err = carService.PostCar(nil, car)
+	err = carService.PostCar(context.Background(), car)
 
 	assert.NoError(t, err)
 
 	car.Brand = "Mercedes"
 	car.Model = "Benz"
 
-	err = carService.PutCar(nil, car.Id, car)
+	err = carService.PutCar(context.Background(), car.Id, car)
 
 	assert.NoError(t, err)
 
-	c, err := carService.GetCar(nil, car.Id)
+	c, err := carService.GetCar(context.Background(), car.Id)
 
 	assert.NoError(t, err)
 	assert.Equal(t, car, c)
@@ -99,15 +100,15 @@ func TestServiceImpl_DeleteCar(t *testing.T) {
 		Created: time.Now(),
 	}
 
-	err = carService.PostCar(nil, car)
+	err = carService.PostCar(context.Background(), car)
 
 	assert.NoError(t, err)
 
-	err = carService.DeleteCar(nil, car.Id)
+	err = carService.DeleteCar(context.Background(), car.Id)
 
 	assert.NoError(t, err)
 
-	car, err = carService.GetCar(nil, car.Id)
+	car, err = carService.GetCar(context.Background(), car.Id)
 
 	assert.Equal(t, ErrNotFound, err)
 	assert.Nil(t, car)

@@ -1,4 +1,4 @@
-package car
+package service
 
 import (
 	"context"
@@ -24,36 +24,28 @@ type ServiceImpl struct {
 }
 
 func (s *ServiceImpl) GetCar(ctx context.Context, id int) (*Car, error) {
-	car, err := s.CarsRepository.Find(id)
+	car, err := s.CarsRepository.Find(ctx, id)
 	return car, err
 }
 
 func (s *ServiceImpl) PostCar(ctx context.Context, car *Car) error {
-	if car.Id != 0 {
-		return ErrBadRouting
-	}
-
-	err := s.CarsRepository.Store(car)
+	err := s.CarsRepository.Store(ctx, car)
 	return err
 }
 
 func (s *ServiceImpl) PutCar(ctx context.Context, id int, carUpdated *Car) error {
-	car, err := s.CarsRepository.Find(id)
+	_, err := s.CarsRepository.Find(ctx, id)
 	if err != nil {
 		return err
 	}
 
-	car = carUpdated
-	car.Id = id
+	carUpdated.Id = id
 
-	err = s.CarsRepository.Store(car)
+	err = s.CarsRepository.Store(ctx, carUpdated)
 	return err
 }
 
 func (s *ServiceImpl) DeleteCar(ctx context.Context, id int) error {
-	err := s.CarsRepository.Del(id)
+	err := s.CarsRepository.Del(ctx, id)
 	return err
 }
-
-
-
